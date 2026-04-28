@@ -1,13 +1,13 @@
--- ==========================================
--- 45 ADVANCED MYSQL QUERIES FOR DBMS PROJECT
+
+
 -- Structured by Concept to demonstrate depth
--- ==========================================
+
 
 USE railway_reservation;
 
--- ---------------------------------------------------------
+-- 
 -- PART A: COMPLEX JOINS (INNER, LEFT, MULTI-TABLE)
--- ---------------------------------------------------------
+-- 
 
 -- Q1. Retrieve all confirmed tickets with passenger name, train name, and source-destination.
 SELECT t.passenger_name, tr.train_name, tr.source, tr.destination
@@ -49,9 +49,9 @@ SELECT a.department, a.access_level, u.name
 FROM admin a
 JOIN user u ON a.user_id = u.user_id;
 
--- ---------------------------------------------------------
+-- 
 -- PART B: SUBQUERIES (IN, EXISTS, ANY, ALL)
--- ---------------------------------------------------------
+-- 
 
 -- Q6. Find users who have booked journeys starting from 'New York' (Using IN).
 SELECT name FROM user 
@@ -84,9 +84,9 @@ SELECT u.name, p.age FROM passenger p
 JOIN user u ON p.user_id = u.user_id
 WHERE p.age > (SELECT AVG(age) FROM passenger);
 
--- ---------------------------------------------------------
+
 -- PART C: CORRELATED SUBQUERIES
--- ---------------------------------------------------------
+
 
 -- Q11. Find the latest booking made by each user.
 SELECT b1.user_id, b1.booking_id, b1.booking_date 
@@ -128,9 +128,9 @@ WHERE b.schedule_id = (
     SELECT schedule_id FROM schedule ORDER BY dep_time ASC LIMIT 1
 );
 
--- ---------------------------------------------------------
+
 -- PART D: AGGREGATION & GROUPING (GROUP BY, HAVING)
--- ---------------------------------------------------------
+
 
 -- Q16. Total revenue generated per payment method.
 SELECT payment_method, SUM(amount) AS total_revenue
@@ -172,9 +172,9 @@ GROUP BY c.coach_type
 ORDER BY passenger_count DESC LIMIT 1;
 
 
--- ---------------------------------------------------------
+-- 
 -- PART E: WINDOW FUNCTIONS (RANK, ROW_NUMBER, OVER)
--- ---------------------------------------------------------
+-- 
 
 -- Q21. Rank trains based on the total number of bookings.
 SELECT tr.train_name, COUNT(b.booking_id) as booking_cnt,
@@ -206,9 +206,9 @@ SELECT train_id, dep_time,
        LEAD(dep_time) OVER(PARTITION BY train_id ORDER BY dep_time) as next_dep_time
 FROM schedule;
 
--- ---------------------------------------------------------
+
 -- PART F: COMMON TABLE EXPRESSIONS (CTEs)
--- ---------------------------------------------------------
+
 
 -- Q26. Find the percentage of cancelled tickets completely within a CTE.
 WITH CntCTE AS (
@@ -253,9 +253,9 @@ SELECT u.name, f.b_cnt
 FROM FreqTravelers f 
 JOIN user u ON f.user_id = u.user_id;
 
--- ---------------------------------------------------------
+
 -- PART G: VIEWS
--- ---------------------------------------------------------
+
 
 -- Q31. View for full passenger manifest.
 CREATE OR REPLACE VIEW PassengerManifest AS

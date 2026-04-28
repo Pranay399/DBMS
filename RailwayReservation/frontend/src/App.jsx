@@ -55,6 +55,46 @@ export const QUERIES = [
   { id: 43, part: 'J', title: 'User Travel Diversity (CTE + DENSE_RANK)', desc: 'Rank users by the number of unique trains they have travelled on using a CTE and DENSE_RANK().', badge: 'ADVANCED', badgeClass: 'badge-adv' },
   { id: 44, part: 'J', title: 'Top Payment Method (CTE + RANK)', desc: 'Most preferred payment method (excluding refunds) using a CTE combined with RANK() OVER.', badge: 'ADVANCED', badgeClass: 'badge-adv' },
   { id: 45, part: 'J', title: 'Avg Passenger Age Per Admin Dept', desc: 'Multi-level JOIN finding the average passenger age each admin department has processed.', badge: 'ADVANCED', badgeClass: 'badge-adv' },
+  { id: 46, part: 'K', title: 'Monthly Revenue Analytics', desc: 'Aggregated revenue grouped by month to analyze financial trends.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 47, part: 'K', title: 'Busy Station Arrivals', desc: 'Identify which stations receive the most incoming train traffic.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 48, part: 'K', title: 'Universal Coach Travelers', desc: 'Relational division: users who have booked seats in every available coach type.', badge: 'RELATIONAL', badgeClass: 'badge-adv' },
+  { id: 49, part: 'K', title: 'High Occupancy Trains', desc: 'Trains with total bookings higher than the system-wide average occupancy.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 50, part: 'K', title: 'Average Journey Duration', desc: 'Calculate the average time spent on journeys per train in minutes.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 51, part: 'K', title: 'Revenue by Age Group', desc: 'Financial breakdown by age category (Minor/Adult/Senior) using GetAgeCategory.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 52, part: 'K', title: 'Top 5 Power Users', desc: 'Identify the most frequent travelers by total booking count.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 53, part: 'K', title: 'Train Refund Rates', desc: 'Rank trains by the percentage of payments that resulted in a refund.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 54, part: 'K', title: 'Coach Seat Availability', desc: 'Real-time report of total vs booked seats for every coach in the system.', badge: 'REPORT', badgeClass: 'badge-view' },
+  { id: 55, part: 'K', title: 'Zero Cancellation Users', desc: 'Find users who have never cancelled a single ticket in their history.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 56, part: 'K', title: 'Dept Revenue Performance', desc: 'Simulated cross-analysis of revenue generation per admin department.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 57, part: 'K', title: 'Common Passenger Names', desc: 'Frequency analysis of passenger names (potential family/group patterns).', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 58, part: 'K', title: 'Avg Price per Coach Type', desc: 'Compare average booking costs across different coach classes.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 59, part: 'K', title: 'Schedule Conflict Audit', desc: 'Identify instances where a train has overlapping departure/arrival times.', badge: 'AUDIT', badgeClass: 'badge-trg' },
+  { id: 60, part: 'K', title: 'Third-Party Bookings', desc: 'Users who booked tickets for passengers with different names.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 61, part: 'K', title: 'Coach Revenue Rankings', desc: 'Rank individual coaches by the total revenue they have generated using RANK().', badge: 'WINDOW', badgeClass: 'badge-win' },
+  { id: 62, part: 'K', title: 'Highest Value Ticket', desc: 'Identify the single most expensive payment recorded in the system.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 63, part: 'K', title: 'AC vs Non-AC Ratio', desc: 'Percentage distribution of bookings between AC and standard classes.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 64, part: 'K', title: 'Fully Occupied Trains', desc: 'Identify trains where every single seat has been booked.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 65, part: 'K', title: 'Multi-Method Payment Users', desc: 'Users who have utilized more than one distinct payment method.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 66, part: 'K', title: 'Average Booking Lead Time', desc: 'The average number of hours between booking creation and train departure.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 67, part: 'K', title: 'MoM Revenue Growth', desc: 'Calculate month-over-month revenue growth using the LAG() window function.', badge: 'WINDOW', badgeClass: 'badge-win' },
+  { id: 68, part: 'K', title: 'Peak Booking Hours', desc: 'Hourly distribution of booking activity to identify peak system usage.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 69, part: 'K', title: 'Multi-Source Trains', desc: 'Trains that operate from more than two distinct source cities.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 70, part: 'K', title: 'Non-AC Loyalists', desc: 'Users who have booked journeys but have never once used an AC coach.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 71, part: 'K', title: 'Ghost Train Report', desc: 'Identify trains that have zero bookings recorded against them.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 72, part: 'K', title: 'Avg Age per Train', desc: 'Demographic analysis: average age of passengers on each train.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 73, part: 'K', title: 'Seat Revenue Efficiency', desc: 'Revenue generated per individual physical seat in the system.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 74, part: 'K', title: 'Repeat Train Travelers', desc: 'Identify users who have travelled on the exact same train more than once.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 75, part: 'K', title: 'Longest Journey Duration', desc: 'Identify the train with the highest total travel time in minutes.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 76, part: 'K', title: 'High-Value Gateways', desc: 'Payment gateways preferred for high-value transactions (>$150).', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 77, part: 'K', title: 'Active Passengers (Last 7d)', desc: 'Users who have made at least one booking in the last week.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 78, part: 'K', title: 'Total Cancellation Fees', desc: 'Sum of all cancellation fees collected from refunded tickets.', badge: 'FINANCE', badgeClass: 'badge-view' },
+  { id: 79, part: 'K', title: 'Destination Popularity Rank', desc: 'Rank all destination cities by total incoming booking volume.', badge: 'WINDOW', badgeClass: 'badge-win' },
+  { id: 80, part: 'K', title: 'Bulk Booking Detection', desc: 'Identify single bookings that contain multiple passenger tickets.', badge: 'AUDIT', badgeClass: 'badge-view' },
+  { id: 81, part: 'K', title: 'Gateway Refund Averages', desc: 'The average amount refunded back through each specific gateway.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 82, part: 'K', title: 'Super Admin Users', desc: 'Identify all admins with the highest system access level.', badge: 'SECURITY', badgeClass: 'badge-view' },
+  { id: 83, part: 'K', title: 'Next 24-Hour Schedules', desc: 'Real-time list of all trains departing within the next 24 hours.', badge: 'OPERATIONS', badgeClass: 'badge-view' },
+  { id: 84, part: 'K', title: 'Dominant Gender Demographic', desc: 'The most common gender represented in the passenger database.', badge: 'ANALYTIC', badgeClass: 'badge-view' },
+  { id: 85, part: 'K', title: 'System Longevity', desc: 'Number of days elapsed since the first user registration (Uptime simulation).', badge: 'ANALYTIC', badgeClass: 'badge-view' },
 ];
 
 export const PARTS = [
@@ -68,6 +108,7 @@ export const PARTS = [
   { id: 'H', label: 'Stored Procedures', icon: '⚙️', badge: '4' },
   { id: 'I', label: 'Triggers', icon: '⚡', badge: '3' },
   { id: 'J', label: 'Advanced Combos', icon: '🚀', badge: '3' },
+  { id: 'K', label: 'Analytics Library', icon: '📊', badge: '40' },
 ];
 
 export const PART_TITLES = {
@@ -75,6 +116,7 @@ export const PART_TITLES = {
   D: 'Part D — Aggregation & Grouping', E: 'Part E — Window Functions',
   F: 'Part F — CTEs', G: 'Part G — Views', H: 'Part H — Stored Procedures',
   I: 'Part I — Triggers', J: 'Part J — Advanced Combinations',
+  K: 'Part K — Analytics & BI Reports',
 };
 
 function fmtValue(key, val) {
@@ -213,7 +255,14 @@ function Navbar({ user, page, setPage, onLogout }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{user.name}</div>
-          <div style={{ fontSize: 10, color: user.role === 'admin' ? '#fbbf24' : 'var(--success)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{user.role}</div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
+            <div style={{ fontSize: 10, color: user.role === 'admin' ? '#fbbf24' : 'var(--success)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{user.role}</div>
+            {user.age_category && (
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 600, background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 4 }}>
+                {user.age_category}
+              </div>
+            )}
+          </div>
         </div>
         <button onClick={onLogout} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
           Logout

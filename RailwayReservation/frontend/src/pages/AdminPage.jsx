@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 
 const API = 'http://localhost:5000';
@@ -203,7 +203,6 @@ function SchedulesTab() {
     </div>
   );
 }
-
 // ── Analytics Tab ─────────────────────────────────────────────────────────────
 function AnalyticsTab() {
   const [data, setData] = useState(null);
@@ -215,7 +214,10 @@ function AnalyticsTab() {
 
   if (loading) return <div style={{ color: 'var(--text-muted)', padding: 20 }}>Loading analytics…</div>;
   if (!data) return null;
-  const { revenue, trainRankings, revenueByMethod, ticketStatus, recentBookings } = data;
+  const { 
+    revenue, trainRankings, revenueByMethod, ticketStatus, recentBookings, 
+    growth = [], peakHours = [], classDistribution = [] 
+  } = data;
 
   return (
     <div>
@@ -258,6 +260,68 @@ function AnalyticsTab() {
           ))}
         </div>
       </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 28 }}>
+        {/* MoM Growth Chart */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>📈 Revenue Growth (MoM)</div>
+          {growth.map((g, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '4px 0' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Month {g.month}</span>
+              <div style={{ flex: 1, margin: '0 15px', height: 4, background: 'var(--border)', borderRadius: 2, position: 'relative' }}>
+                <div style={{ height: '100%', borderRadius: 2, background: 'var(--success)', width: `${Math.min(100, (g.revenue / (Math.max(...growth.map(x=>x.revenue)) || 1)) * 100)}%` }} />
+              </div>
+              <div style={{ textAlign: 'right', minWidth: 60 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: 'white' }}>${Number(g.revenue).toLocaleString()}</div>
+                {g.growth !== null && (
+                  <div style={{ fontSize: 10, color: g.growth >= 0 ? '#34d399' : '#f87171' }}>
+                    {g.growth >= 0 ? '▲' : '▼'} ${Math.abs(g.growth).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Peak Hours Visual */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>🕒 Peak Booking Hours</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 100, paddingBottom: 20 }}>
+            {peakHours.map((p, i) => (
+              <div key={i} title={`${p.hr}:00 - ${p.cnt} bookings`} style={{ 
+                flex: 1, background: p.cnt === Math.max(...peakHours.map(x=>x.cnt)) ? 'var(--accent-bright)' : 'rgba(59,130,246,0.3)', 
+                height: `${(p.cnt / (Math.max(...peakHours.map(x=>x.cnt)) || 1)) * 100}%`,
+                borderRadius: '2px 2px 0 0', minWidth: 4
+              }} />
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-muted)' }}>
+            <span>00:00</span><span>12:00</span><span>23:59</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20, marginBottom: 28 }}>
+         <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 14 }}>💎 Class Distribution (AC vs General)</div>
+            <div style={{ height: 20, width: '100%', background: 'var(--border)', borderRadius: 10, display: 'flex', overflow: 'hidden', marginBottom: 12 }}>
+               {classDistribution.map((c, i) => (
+                 <div key={i} style={{ 
+                   height: '100%', width: `${c.pct}%`, 
+                   background: c.coach_type === 'AC' ? 'var(--accent)' : 'var(--accent-bright)',
+                   opacity: 1 - (i * 0.2)
+                 }} title={`${c.coach_type}: ${c.pct}%`} />
+               ))}
+            </div>
+            <div style={{ display: 'flex', gap: 20 }}>
+               {classDistribution.map((c, i) => (
+                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 2, background: c.coach_type === 'AC' ? 'var(--accent)' : 'var(--accent-bright)', opacity: 1 - (i * 0.2) }} />
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{c.coach_type}: <strong>{Number(c.pct).toFixed(1)}%</strong></span>
+                 </div>
+               ))}
+            </div>
+         </div>
+      </div>
 
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Recent Bookings</div>
@@ -285,10 +349,165 @@ function AnalyticsTab() {
   );
 }
 
+// ── Logs Tab ──────────────────────────────────────────────────────────────────
+function LogsTab() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    setLoading(true);
+    axios.get(`${API}/api/admin/cancellations`)
+      .then(r => setLogs(r.data.data || []))
+      .catch(() => setLogs([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(load, []);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Cancellation Audit Logs</div>
+        <button onClick={load} style={outlineBtn}>↺ Refresh Logs</button>
+      </div>
+
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
+        This audit trail is automatically populated by the <code>trg_log_cancellations</code> trigger whenever a booking is cancelled.
+      </div>
+
+      {loading ? <div style={{ color: 'var(--text-muted)', padding: 20 }}>Loading logs…</div> : (
+        <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: 'var(--bg-surface)' }}>
+                {['Log ID', 'Payment ID', 'Booking ID', 'Amount', 'Cancel Time'].map(h => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {logs.length === 0 ? (
+                <tr><td colSpan="5" style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>No cancellation logs found.</td></tr>
+              ) : logs.map(log => (
+                <tr key={log.log_id} style={{ borderBottom: '1px solid rgba(30,58,110,0.3)' }}>
+                  <td style={td}><span style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--accent-bright)' }}>#{log.log_id}</span></td>
+                  <td style={td}>#{log.payment_id}</td>
+                  <td style={td}>#{log.booking_id}</td>
+                  <td style={{ ...td, color: '#f87171', fontWeight: 700 }}>${Number(log.amount).toFixed(2)}</td>
+                  <td style={td}>{new Date(log.cancel_time).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Library Tab (Part K) ──────────────────────────────────────────────────────
+function LibraryTab() {
+  const [selected, setSelected] = useState(null);
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const libQueries = useMemo(() => [
+    { id: 46, title: 'Monthly Revenue', icon: '📈', color: '#10b981' },
+    { id: 47, title: 'Station Traffic', icon: '🚉', color: '#3b82f6' },
+    { id: 50, title: 'Journey Durations', icon: '⏱️', color: '#8b5cf6' },
+    { id: 51, title: 'Age Demographics', icon: '👥', color: '#f59e0b' },
+    { id: 53, title: 'Refund Analysis', icon: '💸', color: '#ef4444' },
+    { id: 54, title: 'Coach Occupancy', icon: '🎟️', color: '#06b6d4' },
+    { id: 63, title: 'Class Distribution', icon: '💎', color: '#ec4899' },
+    { id: 68, title: 'Peak Hours', icon: '🕒', color: '#6366f1' },
+    { id: 79, title: 'Top Destinations', icon: '📍', color: '#14b8a6' },
+    { id: 85, title: 'System Uptime', icon: '⚡', color: '#f43f5e' },
+  ], []);
+
+  const run = async (q) => {
+    setSelected(q);
+    setLoading(true);
+    try {
+      const r = await axios.get(`${API}/api/q${q.id}`);
+      setResults(r.data.data);
+    } catch (e) { setResults([]); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>Advanced Analytics Library (Part K)</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+        {libQueries.map(q => (
+          <div key={q.id} onClick={() => run(q)} style={{ 
+            background: 'var(--bg-card)', border: `1px solid ${selected?.id === q.id ? q.color : 'var(--border)'}`, 
+            borderRadius: 12, padding: 16, cursor: 'pointer', transition: 'transform 0.2s',
+            transform: selected?.id === q.id ? 'translateY(-2px)' : 'none',
+            boxShadow: selected?.id === q.id ? `0 4px 12px ${q.color}22` : 'none'
+          }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>{q.icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-primary)' }}>{q.title}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Run Report #{q.id}</div>
+          </div>
+        ))}
+      </div>
+
+      {selected && (
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{selected.title} Report Results</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Real-time database fetch for Query Q{selected.id}</div>
+            </div>
+            {loading && <div style={{ fontSize: 12, color: 'var(--accent-bright)' }}>Fetching...</div>}
+          </div>
+
+          {!loading && results && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: 'var(--bg-surface)' }}>
+                    {Object.keys(results[0] || {}).map(k => (
+                      <th key={k} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', borderBottom: '1px solid var(--border)' }}>{k.replace('_', ' ')}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((row, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid rgba(30,58,110,0.2)' }}>
+                      {Object.values(row).map((val, j) => {
+                        const key = Object.keys(row)[j];
+                        // Mini-visuals for specific keys
+                        let content = val;
+                        if (key.includes('revenue') || key.includes('amount')) content = <span style={{ color: 'var(--success)', fontWeight: 800 }}>${Number(val).toLocaleString()}</span>;
+                        if (key.includes('rate') || key.includes('pct') || key.includes('utilization')) {
+                           content = (
+                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                               <div style={{ width: 60, height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 3 }}>
+                                 <div style={{ height: '100%', borderRadius: 3, background: 'var(--accent)', width: `${Math.min(100, val)}%` }} />
+                               </div>
+                               <span>{Number(val).toFixed(1)}%</span>
+                             </div>
+                           );
+                        }
+                        return <td key={j} style={{ padding: '10px 14px', color: 'var(--text-secondary)' }}>{content}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Admin Page ───────────────────────────────────────────────────────────
 export default function AdminPage() {
   const [tab, setTab] = useState('analytics');
-  const tabs = [['analytics', '📊 Analytics'], ['trains', '🚂 Trains'], ['schedules', '📅 Schedules']];
+  const tabs = [['analytics', '📊 Analytics'], ['library', '📚 Library'], ['trains', '🚂 Trains'], ['schedules', '📅 Schedules'], ['logs', '📋 Logs']];
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
@@ -310,6 +529,8 @@ export default function AdminPage() {
       {tab === 'trains' && <TrainsTab />}
       {tab === 'schedules' && <SchedulesTab />}
       {tab === 'analytics' && <AnalyticsTab />}
+      {tab === 'library' && <LibraryTab />}
+      {tab === 'logs' && <LogsTab />}
     </div>
   );
 }

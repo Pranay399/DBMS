@@ -484,8 +484,8 @@ app.get('/api/q37', async (req, res) => {
                 COMMIT;
             END
         `);
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             data: [{ procedure_name: 'ProcessRefund', status: 'Created Successfully', description: 'Processes a full refund for a payment, updating status and logging cancellation in a transaction.' }]
         });
     } catch (error) {
@@ -537,8 +537,8 @@ app.get('/api/q40', async (req, res) => {
                 END IF;
             END
         `);
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             data: [{ trigger_name: 'trg_check_payment_amount', event: 'BEFORE INSERT ON payment', status: 'Created Successfully', description: 'Prevents negative payment amounts from being inserted into the payment table.' }]
         });
     } catch (error) {
@@ -637,6 +637,67 @@ app.get('/api/q45', (req, res) => runQuery(res, `
     GROUP BY a.admin_id, a.department
 `));
 
+// ── EXTENDED QUERIES (Q46 - Q85) ───────────────────────────────────────────
+
+app.get('/api/q46', (req, res) => runQuery(res, "SELECT MONTH(booking_date) as month, SUM(p.amount) as revenue FROM booking b JOIN payment p ON b.booking_id = p.booking_id GROUP BY month ORDER BY month"));
+app.get('/api/q47', (req, res) => runQuery(res, "SELECT destination, COUNT(*) as arrivals FROM train GROUP BY destination ORDER BY arrivals DESC"));
+app.get('/api/q48', (req, res) => runQuery(res, "SELECT u.name FROM user u WHERE NOT EXISTS (SELECT DISTINCT coach_type FROM coach WHERE coach_type NOT IN (SELECT c.coach_type FROM booking b JOIN ticket t ON b.booking_id = t.ticket_id JOIN seat s ON t.seat_id = s.seat_id JOIN coach c ON s.coach_id = c.coach_id WHERE b.user_id = u.user_id))"));
+app.get('/api/q49', (req, res) => runQuery(res, "SELECT train_name FROM train WHERE train_id IN (SELECT train_id FROM booking GROUP BY train_id HAVING COUNT(*) > (SELECT COUNT(*) / COUNT(DISTINCT train_id) FROM booking))"));
+app.get('/api/q50', (req, res) => runQuery(res, "SELECT tr.train_name, AVG(TIMESTAMPDIFF(MINUTE, s.dep_time, s.arr_time)) as avg_duration FROM train tr JOIN schedule s ON tr.train_id = s.train_id GROUP BY tr.train_id"));
+app.get('/api/q51', (req, res) => runQuery(res, "SELECT GetAgeCategory(p.age) as age_group, SUM(pay.amount) as revenue FROM passenger p JOIN booking b ON p.user_id = b.user_id JOIN payment pay ON b.booking_id = pay.booking_id GROUP BY age_group"));
+app.get('/api/q52', (req, res) => runQuery(res, "SELECT u.name, COUNT(b.booking_id) as cnt FROM user u JOIN booking b ON u.user_id = b.user_id GROUP BY u.user_id ORDER BY cnt DESC LIMIT 5"));
+app.get('/api/q53', (req, res) => runQuery(res, "SELECT tr.train_name, (COUNT(r.payment_id) / COUNT(p.payment_id)) * 100 as refund_rate FROM train tr JOIN booking b ON tr.train_id = b.train_id JOIN payment p ON b.booking_id = p.booking_id LEFT JOIN refund r ON p.payment_id = r.payment_id GROUP BY tr.train_id ORDER BY refund_rate DESC"));
+app.get('/api/q54', (req, res) => runQuery(res, "SELECT c.coach_id, c.coach_type, (SELECT COUNT(*) FROM seat s WHERE s.coach_id = c.coach_id) as total_seats, (SELECT COUNT(*) FROM ticket t JOIN seat s ON t.seat_id = s.seat_id WHERE s.coach_id = c.coach_id) as booked_seats FROM coach c"));
+app.get('/api/q55', (req, res) => runQuery(res, "SELECT name FROM user WHERE user_id NOT IN (SELECT b.user_id FROM booking b JOIN ticket t ON b.booking_id = t.ticket_id JOIN cancelled c ON t.ticket_id = c.ticket_id)"));
+app.get('/api/q56', (req, res) => runQuery(res, "SELECT a.department, SUM(p.amount) as revenue FROM admin a JOIN user u ON a.user_id = u.user_id JOIN booking b ON 1=1 JOIN payment p ON b.booking_id = p.booking_id GROUP BY a.department"));
+app.get('/api/q57', (req, res) => runQuery(res, "SELECT passenger_name, COUNT(*) as freq FROM ticket GROUP BY passenger_name ORDER BY freq DESC"));
+app.get('/api/q58', (req, res) => runQuery(res, "SELECT c.coach_type, AVG(p.amount) as avg_price FROM coach c JOIN seat s ON c.coach_id = s.coach_id JOIN ticket t ON s.seat_id = t.seat_id JOIN payment p ON t.booking_id = p.booking_id GROUP BY c.coach_type"));
+app.get('/api/q59', (req, res) => runQuery(res, "SELECT s1.train_id, s1.schedule_id, s2.schedule_id FROM schedule s1 JOIN schedule s2 ON s1.train_id = s2.train_id WHERE s1.schedule_id < s2.schedule_id AND s1.arr_time > s2.dep_time"));
+app.get('/api/q60', (req, res) => runQuery(res, "SELECT u.name as user_name, t.passenger_name FROM user u JOIN booking b ON u.user_id = b.user_id JOIN ticket t ON b.booking_id = t.booking_id WHERE u.name != t.passenger_name"));
+app.get('/api/q61', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT coach_id, SUM(amount) as rev FROM seat s JOIN ticket t ON s.seat_id = t.seat_id JOIN payment p ON t.booking_id = p.booking_id GROUP BY coach_id ORDER BY rev DESC");
+        res.json({ success: true, data: rows });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+app.get('/api/q62', (req, res) => runQuery(res, "SELECT * FROM payment ORDER BY amount DESC LIMIT 1"));
+app.get('/api/q63', (req, res) => runQuery(res, "SELECT coach_type, (COUNT(*) / (SELECT COUNT(*) FROM ticket)) * 100 as pct FROM coach c JOIN seat s ON c.coach_id = s.coach_id JOIN ticket t ON s.seat_id = t.seat_id GROUP BY coach_type"));
+app.get('/api/q64', (req, res) => runQuery(res, "SELECT train_name FROM train tr WHERE NOT EXISTS (SELECT seat_id FROM seat s JOIN coach c ON s.coach_id = c.coach_id WHERE c.train_id = tr.train_id AND seat_id NOT IN (SELECT seat_id FROM ticket))"));
+app.get('/api/q65', (req, res) => runQuery(res, "SELECT user_id, COUNT(DISTINCT payment_method) as methods FROM booking b JOIN payment p ON b.booking_id = p.booking_id GROUP BY user_id HAVING methods > 1"));
+app.get('/api/q66', (req, res) => runQuery(res, "SELECT AVG(TIMESTAMPDIFF(HOUR, booking_date, dep_time)) as lead_time FROM booking b JOIN schedule s ON b.schedule_id = s.schedule_id"));
+app.get('/api/q67', async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT m1.month, m1.revenue, m1.revenue - m2.revenue as growth
+            FROM (SELECT MONTH(booking_date) as month, SUM(p.amount) as revenue FROM booking b JOIN payment p ON b.booking_id = p.booking_id GROUP BY month) as m1
+            LEFT JOIN (SELECT MONTH(booking_date) as month, SUM(p.amount) as revenue FROM booking b JOIN payment p ON b.booking_id = p.booking_id GROUP BY month) as m2 ON m1.month = m2.month + 1
+        `);
+        res.json({ success: true, data: rows });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+app.get('/api/q68', (req, res) => runQuery(res, "SELECT HOUR(booking_date) as hr, COUNT(*) as cnt FROM booking GROUP BY hr ORDER BY cnt DESC"));
+app.get('/api/q69', (req, res) => runQuery(res, "SELECT train_name FROM train GROUP BY train_name HAVING COUNT(DISTINCT source) > 2"));
+app.get('/api/q70', (req, res) => runQuery(res, "SELECT DISTINCT u.name FROM user u JOIN passenger psg ON u.user_id = psg.user_id WHERE u.user_id NOT IN (SELECT b.user_id FROM booking b JOIN ticket t ON b.booking_id = t.ticket_id JOIN seat s ON t.seat_id = s.seat_id JOIN coach c ON s.coach_id = c.coach_id WHERE c.coach_type = 'AC')"));
+app.get('/api/q71', (req, res) => runQuery(res, "SELECT train_name FROM train WHERE train_id NOT IN (SELECT train_id FROM booking)"));
+app.get('/api/q72', (req, res) => runQuery(res, "SELECT tr.train_name, AVG(p.age) as avg_age FROM train tr JOIN booking b ON tr.train_id = b.train_id JOIN passenger p ON b.user_id = p.user_id GROUP BY tr.train_id"));
+app.get('/api/q73', (req, res) => runQuery(res, "SELECT s.seat_id, SUM(p.amount) as revenue FROM seat s LEFT JOIN ticket t ON s.seat_id = t.seat_id LEFT JOIN payment p ON t.booking_id = p.booking_id GROUP BY s.seat_id"));
+app.get('/api/q74', (req, res) => runQuery(res, "SELECT user_id, train_id, COUNT(*) as cnt FROM booking GROUP BY user_id, train_id HAVING cnt > 1"));
+app.get('/api/q75', (req, res) => runQuery(res, "SELECT train_name, TIMESTAMPDIFF(MINUTE, dep_time, arr_time) as duration FROM train tr JOIN schedule s ON tr.train_id = s.train_id ORDER BY duration DESC LIMIT 1"));
+app.get('/api/q76', (req, res) => runQuery(res, "SELECT gateway_name, COUNT(*) as high_val_cnt FROM online o JOIN payment p ON o.payment_id = p.payment_id WHERE p.amount > 150 GROUP BY gateway_name"));
+app.get('/api/q77', (req, res) => runQuery(res, "SELECT DISTINCT u.name FROM user u JOIN booking b ON u.user_id = b.user_id WHERE b.booking_date > DATE_SUB(NOW(), INTERVAL 7 DAY)"));
+app.get('/api/q78', (req, res) => runQuery(res, "SELECT SUM(cancellation_fee) as total_fees FROM cancelled"));
+app.get('/api/q79', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT destination, COUNT(*) as bookings FROM train tr JOIN booking b ON tr.train_id = b.train_id GROUP BY destination ORDER BY bookings DESC");
+        res.json({ success: true, data: rows });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+app.get('/api/q80', (req, res) => runQuery(res, "SELECT booking_id, COUNT(*) as tickets FROM ticket GROUP BY booking_id HAVING tickets > 1"));
+app.get('/api/q81', (req, res) => runQuery(res, "SELECT gateway_name, AVG(amount) as avg_refund FROM online o JOIN payment p ON o.payment_id = p.payment_id WHERE p.payment_status = 'REFUNDED' GROUP BY gateway_name"));
+app.get('/api/q82', (req, res) => runQuery(res, "SELECT u.name FROM user u JOIN admin a ON u.user_id = a.user_id WHERE a.access_level = 'SUPER_ADMIN'"));
+app.get('/api/q83', (req, res) => runQuery(res, "SELECT tr.train_name, s.dep_time FROM train tr JOIN schedule s ON tr.train_id = s.train_id WHERE s.dep_time BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 24 HOUR)"));
+app.get('/api/q84', (req, res) => runQuery(res, "SELECT gender, COUNT(*) as cnt FROM passenger GROUP BY gender ORDER BY cnt DESC LIMIT 1"));
+app.get('/api/q85', (req, res) => runQuery(res, "SELECT DATEDIFF(NOW(), MIN(created_at)) as uptime_days FROM user"));
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 app.post('/api/auth/register', async (req, res) => {
@@ -653,13 +714,16 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const [rows] = await pool.query(
-            'SELECT u.*, a.admin_id FROM user u LEFT JOIN admin a ON u.user_id = a.user_id WHERE u.email = ? AND u.password = ?',
-            [email, password]
-        );
+        const [rows] = await pool.query(`
+            SELECT u.*, a.admin_id, p.age, GetAgeCategory(p.age) AS age_category
+            FROM user u 
+            LEFT JOIN admin a ON u.user_id = a.user_id 
+            LEFT JOIN passenger p ON u.user_id = p.user_id
+            WHERE u.email = ? AND u.password = ?
+        `, [email, password]);
         if (rows.length === 0) return res.status(401).json({ success: false, error: 'Invalid email or password' });
         const u = rows[0];
-        res.json({ success: true, user: { user_id: u.user_id, name: u.name, email: u.email, role: u.admin_id ? 'admin' : 'passenger' } });
+        res.json({ success: true, user: { user_id: u.user_id, name: u.name, email: u.email, role: u.admin_id ? 'admin' : 'passenger', age_category: u.age_category } });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
@@ -794,17 +858,23 @@ app.post('/api/bookings/:id/cancel', async (req, res) => {
         await conn.query('INSERT IGNORE INTO cancelled (ticket_id, cancellation_fee) VALUES (?, ?)', [ticket_id, 10.00]);
         const [pays] = await conn.query('SELECT payment_id FROM payment WHERE booking_id = ?', [req.params.id]);
         if (pays.length) {
-            await conn.query("UPDATE payment SET payment_status = 'REFUNDED' WHERE payment_id = ?", [pays[0].payment_id]);
-            await conn.query('INSERT IGNORE INTO refund (payment_id, refund_percentage, processed_date) VALUES (?, ?, NOW())', [pays[0].payment_id, 90]);
-            await conn.query('INSERT IGNORE INTO cancellation (payment_id, reason) VALUES (?, ?)', [pays[0].payment_id, 'Cancelled by user']);
+            // Using the ProcessRefund stored procedure to handle refund and cancellation entries in transaction
+            await conn.query('CALL ProcessRefund(?, ?)', [pays[0].payment_id, 'Cancelled by user']);
         }
         await conn.commit();
-        res.json({ success: true, message: 'Cancelled successfully' });
+        res.json({ success: true, message: 'Cancelled successfully using ProcessRefund Procedure' });
     } catch (e) { await conn.rollback(); res.status(500).json({ success: false, error: e.message }); }
     finally { conn.release(); }
 });
 
 // ── ADMIN CRUD ────────────────────────────────────────────────────────────────
+app.get('/api/admin/cancellations', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT c.*, p.booking_id, p.amount FROM cancellation_log c JOIN payment p ON c.payment_id = p.payment_id ORDER BY c.cancel_time DESC');
+        res.json({ success: true, data: rows });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
 app.get('/api/admin/trains', async (req, res) => {
     try {
         const [rows] = await pool.query(`
@@ -894,13 +964,39 @@ app.get('/api/admin/analytics', async (req, res) => {
             LEFT JOIN payment p ON b.booking_id = p.booking_id
             ORDER BY b.booking_date DESC LIMIT 10
         `);
-        res.json({ success: true, data: { revenue: rev, trainRankings: trainRank, revenueByMethod: byMethod, ticketStatus: ts, recentBookings: recent } });
-    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+
+        // NEW PART K INTEGRATIONS
+        // Simulated LAG() using a self-join for compatibility with MySQL 5.7
+        const [growth] = await pool.query(`
+            SELECT m1.month, m1.revenue, m1.revenue - m2.revenue as growth
+            FROM (
+                SELECT MONTH(booking_date) as month, SUM(p.amount) as revenue 
+                FROM booking b JOIN payment p ON b.booking_id = p.booking_id 
+                GROUP BY month
+            ) as m1
+            LEFT JOIN (
+                SELECT MONTH(booking_date) as month, SUM(p.amount) as revenue 
+                FROM booking b JOIN payment p ON b.booking_id = p.booking_id 
+                GROUP BY month
+            ) as m2 ON m1.month = m2.month + 1
+        `);
+        const [peak] = await pool.query(`SELECT HOUR(booking_date) as hr, COUNT(*) as cnt FROM booking GROUP BY hr ORDER BY hr`);
+        const [dist] = await pool.query(`SELECT coach_type, (COUNT(*) / NULLIF((SELECT COUNT(*) FROM ticket), 0)) * 100 as pct FROM coach c JOIN seat s ON c.coach_id = s.coach_id JOIN ticket t ON s.seat_id = t.seat_id GROUP BY coach_type`);
+
+        res.json({ success: true, data: { 
+            revenue: rev, trainRankings: trainRank, revenueByMethod: byMethod, 
+            ticketStatus: ts, recentBookings: recent,
+            growth, peakHours: peak, classDistribution: dist
+        } });
+    } catch (e) { 
+        console.error('Analytics Error:', e);
+        res.status(500).json({ success: false, error: e.message }); 
+    }
 });
 
 // ── START SERVER ──────────────────────────────────────────────────────────────
 app.listen(port, () => {
     console.log(`\n🚂 Railway Reservation API running on http://localhost:${port}`);
-    console.log(`   45 query endpoints + full booking/admin API ready\n`);
+    console.log(`   85 query endpoints + full booking/admin API ready\n`);
 });
 
